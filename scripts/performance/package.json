@@ -1,0 +1,15 @@
+{
+  "name": "@local-portal/performance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "benchmark": "node benchmark.mjs",
+    "benchmark:no-cache": "node benchmark.mjs --mode=no-cache",
+    "benchmark:cache": "node benchmark.mjs --mode=cache",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

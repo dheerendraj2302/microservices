@@ -1,0 +1,8 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #fbfcfe; }
+button, input { font: inherit; }
+.zoneHeader { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 0 28px; border-bottom: 1px solid #d7ddea; background: white; font-family: system-ui, sans-serif; }
+.zoneHeader a { color: #172033; text-decoration: none; }
+.zoneHeader nav { display: flex; gap: 22px; }
+.zoneHeader nav a[aria-current="page"] { color: #315efb; font-weight: 700; }
+.zoneBrand { font-weight: 800; }

@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+**/dist
+**/build
+**/coverage
+scripts/performance/results
+.env
+.env.*
+!.env.example
+*.log
+.idea
+.vscode
+docs
+plan

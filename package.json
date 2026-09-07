@@ -1,0 +1,39 @@
+{
+  "name": "local-customer-portal-poc",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.5.2",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*",
+    "scripts/performance"
+  ],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names catalog-api,order-api,customer-api,shell,catalog-mfe,orders-mfe \"npm run dev --workspace catalog-service\" \"npm run dev --workspace order-service\" \"npm run dev --workspace customer-service\" \"npm run dev --workspace @local-customer-portal/shell\" \"npm run dev --workspace @local-customer-portal/catalog\" \"npm run dev --workspace @local-customer-portal/orders\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "benchmark:no-cache": "npm run benchmark:no-cache --workspace @local-portal/performance",
+    "benchmark:cache": "npm run benchmark:cache --workspace @local-portal/performance"
+  },
+  "devDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.63.1",
+    "concurrently": "9.2.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "@types/node": "24.3.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=11.0.0"
+  }
+}

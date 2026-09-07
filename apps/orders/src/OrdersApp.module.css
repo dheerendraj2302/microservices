@@ -1,0 +1,14 @@
+.container { max-width: 1000px; margin: 0 auto; padding: 32px 20px; color: #172033; font-family: Arial, sans-serif; }
+.lookup { display: flex; align-items: end; gap: 12px; margin: 28px 0; }
+.lookup label { display: grid; flex: 1; gap: 6px; font-weight: 600; }
+.lookup input { border: 1px solid #b8c1d1; border-radius: 8px; padding: 10px; }
+.lookup button, .notice button { border: 0; border-radius: 8px; padding: 11px 18px; background: #315efb; color: white; cursor: pointer; }
+.layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+.list { margin: 0; padding: 0; list-style: none; }
+.list button { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 10px; padding: 16px; border: 1px solid #d7ddea; border-radius: 10px; background: white; text-align: left; cursor: pointer; }
+.list button:hover { border-color: #315efb; }
+.detail { min-height: 220px; padding: 22px; border: 1px solid #d7ddea; border-radius: 10px; background: white; }
+.notice { padding: 28px; border-radius: 10px; background: #f4f6fa; text-align: center; }
+.skeleton { min-height: 70px; margin-bottom: 10px; border-radius: 10px; background: linear-gradient(90deg, #edf0f5 25%, #f8f9fb 50%, #edf0f5 75%); background-size: 200% 100%; animation: pulse 1.4s infinite; }
+@keyframes pulse { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (max-width: 700px) { .layout { grid-template-columns: 1fr; } .lookup { align-items: stretch; flex-direction: column; } }

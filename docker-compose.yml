@@ -1,0 +1,141 @@
+name: local-customer-portal
+
+x-api: &api
+  restart: unless-stopped
+  networks: [portal]
+  depends_on:
+    postgres:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "node", "-e", "fetch('http://localhost:' + process.env.PORT + '/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 15s
+
+x-frontend: &frontend
+  restart: unless-stopped
+  networks: [portal]
+  healthcheck:
+    test: ["CMD", "node", "-e", "fetch('http://localhost:' + process.env.PORT + (process.env.HEALTH_PATH || '/')).then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 30s
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: portal_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Copy .env.example to .env and set POSTGRES_ADMIN_PASSWORD}
+      CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD:?Set CATALOG_DB_PASSWORD in .env}
+      ORDER_DB_PASSWORD: ${ORDER_DB_PASSWORD:?Set ORDER_DB_PASSWORD in .env}
+      CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD:?Set CUSTOMER_DB_PASSWORD in .env}
+    ports: ["5432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/seed-db:/docker-entrypoint-initdb.d:ro
+    networks: [portal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portal_admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["6379:6379"]
+    volumes: [redis-data:/data]
+    networks: [portal]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  catalog-service:
+    <<: *api
+    build: ./services/catalog-service
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgresql://catalog_user:${CATALOG_DB_PASSWORD}@postgres:5432/catalog_db
+      REDIS_URL: redis://redis:6379
+      CACHE_TTL_SECONDS: 60
+      CATALOG_DB_DEMO_DELAY_MS: 700
+    ports: ["4001:4001"]
+
+  order-service:
+    <<: *api
+    build: ./services/order-service
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgresql://order_user:${ORDER_DB_PASSWORD}@postgres:5432/order_db
+    ports: ["4002:4002"]
+
+  customer-service:
+    <<: *api
+    build: ./services/customer-service
+    environment:
+      PORT: 4003
+      DATABASE_URL: postgresql://customer_user:${CUSTOMER_DB_PASSWORD}@postgres:5432/customer_db
+      ORDER_SERVICE_URL: http://order-service:4002
+      ORDER_SERVICE_TIMEOUT_MS: 1200
+    ports: ["4003:4003"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  catalog-app:
+    <<: *frontend
+    build:
+      context: ./apps/catalog
+      args:
+        NEXT_PUBLIC_CATALOG_API_URL: http://localhost:4001
+    environment:
+      PORT: 3001
+      HEALTH_PATH: /catalog
+      NEXT_PUBLIC_CATALOG_API_URL: http://localhost:4001
+    ports: ["3001:3001"]
+    depends_on:
+      catalog-service:
+        condition: service_healthy
+
+  orders-app:
+    <<: *frontend
+    build:
+      context: ./apps/orders
+      args:
+        NEXT_PUBLIC_ORDER_API_URL: http://localhost:4002
+    environment:
+      PORT: 3002
+      HEALTH_PATH: /orders
+      NEXT_PUBLIC_ORDER_API_URL: http://localhost:4002
+    ports: ["3002:3002"]
+    depends_on:
+      order-service:
+        condition: service_healthy
+
+  shell-app:
+    <<: *frontend
+    build:
+      context: ./apps/shell
+      args:
+        NEXT_PUBLIC_CUSTOMER_API_URL: http://localhost:4003
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_CUSTOMER_API_URL: http://localhost:4003
+      CATALOG_ZONE_URL: http://catalog-app:3001
+      ORDERS_ZONE_URL: http://orders-app:3002
+    ports: ["3000:3000"]
+
+networks:
+  portal:
+
+volumes:
+  postgres-data:
+  redis-data:
